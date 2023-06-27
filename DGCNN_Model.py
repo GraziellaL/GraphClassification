@@ -4,8 +4,9 @@
 
 import torch
 from torch.nn import Linear, Conv1d, MaxPool1d
-import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, global_sort_pool, Linear
+from torch.nn.functional import dropout, log_softmax
+from torch_geometric.nn import GCNConv, Linear
+from torch_geometric.nn.aggr import SortAggregation
 
 
 class DGCNN(torch.nn.Module):
@@ -91,7 +92,7 @@ class DGCNN(torch.nn.Module):
 
         # 2. Readout : SortPooling
         x = torch.cat([x_1, x_2, x_3, x_4], 1)
-        x = global_sort_pool(x, batch, k=self.k)  # dimension [num_graphs, k * hidden]
+        x = SortAggregation(k=self.k).forward(x, index=batch)  # dimension [num_graphs, k * hidden]
 
         # 3. Classifieur sur les embeddings de graphes
         # a. Couches de convolution 1D
@@ -105,8 +106,8 @@ class DGCNN(torch.nn.Module):
         x = x.view(len(x), -1)  # Applatissement des données
         x = self.classifier1(x)
         x = x.relu()
-        x = torch_fct.dropout(x, p=0.5, training=self.training)
+        x = dropout(x, p=0.5, training=self.training)
         x = self.classifier2(x)
-        x = torch_fct.log_softmax(x, dim=-1)
+        x = log_softmax(x, dim=-1)
 
         return x

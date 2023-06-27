@@ -6,8 +6,8 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import torch
 from GraphUtil import embeddings_visualization
-from torch.data import DataLoader
-from torch.utils import degree
+from torch_geometric.loader import DataLoader
+from torch_geometric.utils import degree
 
 
 def Input_Features_X(i_data):
