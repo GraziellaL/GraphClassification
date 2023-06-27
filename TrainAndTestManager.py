@@ -2,7 +2,6 @@
 # Projet - An End-to-End Deep Learning Architecture for Graph Classification
 ####################################################################################################################
 
-from typing import Optional
 import matplotlib.pyplot as plt
 import torch
 from GraphUtil import embeddings_visualization
@@ -10,7 +9,7 @@ from torch_geometric.loader import DataLoader
 from torch_geometric.utils import degree
 
 
-def Input_Features_X(i_data):
+def input_features_matrix(i_data):
     """
     Définit la matrice d'entrée du modèle
     data.x est la matrice des caractéristiques des sommets du graph
@@ -20,13 +19,13 @@ def Input_Features_X(i_data):
     :return:
     """
     if i_data.x is not None:
-        X = i_data.x
+        output = i_data.x
     else:
         deg = degree(i_data.edge_index[1], i_data.num_nodes)
         deg = deg / deg.mean()
         deg = deg.view(-1, 1)
-        X = deg
-    return X
+        output = deg
+    return output
 
 
 class TrainAndTestManager:
@@ -35,6 +34,8 @@ class TrainAndTestManager:
     sur un datasets donnés en entrée
     """
     def __init__(self, dataset, model, hidden_channels=64, learning_rate=0.0001):
+        self.test_loader = None
+        self.train_loader = None
         self.dataset = dataset
         self.model = model(self.dataset, hidden_channels=hidden_channels)
         print(self.model)
@@ -92,8 +93,8 @@ class TrainAndTestManager:
 
         # Itération sur les batches
         for i, i_data in enumerate(self.train_loader):
-            X = Input_Features_X(i_data)
-            out = self.model(X, i_data.edge_index, i_data.batch)  # Perform a single forward pass.
+            vect = input_features_matrix(i_data)
+            out = self.model(vect, i_data.edge_index, i_data.batch)  # Perform a single forward pass.
             loss = self.loss_criterion(out, i_data.y)  # Compute the loss.
             loss.backward()  # Derive gradients.
             self.optimizer.step()  # Update parameters based on gradients.
@@ -119,8 +120,8 @@ class TrainAndTestManager:
         correct = 0
         # Itération sur les batches
         for i_data in loader:
-            X = Input_Features_X(i_data)
-            out = self.model(X, i_data.edge_index, i_data.batch)
+            vect = input_features_matrix(i_data)
+            out = self.model(vect, i_data.edge_index, i_data.batch)
             pred = out.argmax(dim=1)  # Use the class with highest probability.
             correct += int((pred == i_data.y).sum())  # Check against ground-truth labels.
         return correct / len(loader.dataset)  # Derive ratio of correct predictions.
@@ -138,7 +139,7 @@ class TrainAndTestManager:
             test_acc = self.test(self.test_loader)
             train_acc_viz.append(train_acc)
             test_acc_viz.append(test_acc)
-            print(f'Epoch: {epoch:03d}, Accuracy en appprentissage: {train_acc*100:.1f}%, Accuracy en test: {test_acc*100:.1f}%')
+            print(f'Epoch: {epoch:03d}, Learning accuracy: {train_acc*100:.1f}%, Test accuracy: {test_acc*100:.1f}%')
 
         plt.plot(train_acc_viz, label="Training")
         plt.plot(test_acc_viz, label="Test")

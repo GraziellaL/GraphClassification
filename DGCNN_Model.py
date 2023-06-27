@@ -60,7 +60,6 @@ class DGCNN(torch.nn.Module):
         le k de SortPooling est fixé de telle sorte que XX% des graphiques ont des noeuds de plus de k
         - 60% pour les données avec labels
         - 90% pour les données sans labels comme les datasets de réseaux sociaux
-        :param ratio:
         :return:
         """
         ratio = 0.6
