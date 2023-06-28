@@ -10,3 +10,6 @@ We explore the results with two datasets used by the publication's authors, one 
 and the other from social networks: IMDB-B.
 The datasets are available [here](https://ojs.aaai.org/index.php/AAAI/article/view/11782). 
 
+## Results
+The results of the publication's network are compared with the results of basic GCN and GNN networks.
+
